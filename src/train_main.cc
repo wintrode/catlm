@@ -1,2 +1,10 @@
 #include <stdio.h>
-int main() { printf("Hello world\n"); return 0; }
+#include "corpus/corpus.h"
+
+
+using namespace catlm;
+
+int main() { 
+  printf("Hello world\n"); 
+  return 0; 
+}
