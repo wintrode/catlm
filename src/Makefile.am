@@ -1,12 +1,8 @@
-%.o: %.cpp %.h
-    $(CC) -c $< -o $@
+bin_PROGRAMS = catlm_train catlm_infer
 
-# ...or just grab all the files in the source directory:
-SOURCE_FILES = $(wildcard *.cpp)
-OBJ_FILES = $(SOURCE_FILES:.cpp=.o)
+AM_CXXFLAGS = $(CATLM_CFLAGS)
 
-# It is possible to get this from the environment, but not advisable.
-LIBS = -lred -lblue
-
-final-thing: $(OBJ_FILES)
-    $(CC) $(LIBS) $^ -o $@
+catlm_train_SOURCES = train_main.cc
+catlm_infer_SOURCES = infer_main.cc
+catlm_train_LDADD = $(CATLM_LIBS)
+catlm_infer_LDADD = $(CATLM_LIBS)
