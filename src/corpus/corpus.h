@@ -22,6 +22,7 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <iostream>
 
 
 namespace catlm {
@@ -35,6 +36,9 @@ namespace catlm {
     std::vector<string> vocab;
     std::map<string,int> idmap;
 
+    string unk;
+    int unk_id;
+
   public:
     Vocabulary();
     Vocabulary(string &file);
@@ -44,17 +48,34 @@ namespace catlm {
       return idmap.size();
     }
 
+    int set_oov_token(string &oov) {
+      unk=oov;
+      unk_id=get(unk, true);
+    }
+
+    int add_all(Vocabulary &v) {
+      int i;
+      for (i=0; i < v.vocab.size(); i++) {
+	vocab.push_back(v.vocab[i]);
+	idmap[v.vocab[i]]=i;
+      }
+      unk = v.unk;
+      unk_id = v.unk_id;
+    }
+
     // should be synchronized
     int get(string &wtype, bool add=true) {
       std::map<string,int>::iterator it;
       it = idmap.find(wtype);
+
       if (it == idmap.end()) {
 	if (add) {
-	  idmap[wtype]=vocab.size();
+	  idmap[wtype]=this->vocab.size();
 	  vocab.push_back(wtype);
+	  return this->vocab.size();
 	}
 	else {
-	  return -1;
+	  return unk_id;
 	}
       }
       else {
@@ -80,9 +101,12 @@ namespace catlm {
   private:
 
     std::vector<int> tokens;
+    int oovs;
 
   public:
     Document();
+    Document(std::vector<int> &tokens);
+    Document(std::string &file, Vocabulary *vocab, bool add);
     ~Document();
 
     int get_token(int position) {
@@ -95,6 +119,11 @@ namespace catlm {
     int size() {
       return tokens.size();
     }
+
+    int oov_count() {
+      return oovs;
+    }
+    
     
 
   };
@@ -118,29 +147,33 @@ namespace catlm {
 
 
 
-
   class Corpus {
 
   private:
-    std::vector<Document> docs;
+    std::vector<Document*> docs;
     std::vector<string> docids;
     std::vector<string> docpaths;
 
     std::map<string,int> idmap;
     
-    Vocabulary* vocab;
+    Vocabulary vocab;
+
+    int wc;
+    int oovs;
 
   public:
     Corpus();
+    Corpus(string &path, bool isdir=true);
+    Corpus(string &path, Vocabulary &v, bool isdir=true);
     ~Corpus();
 
     Vocabulary *vocabulary() {
-      return vocab;
+      return &vocab;
     }
     
     Document *doc_at(int position) {
       if (position >= 0 && position < docs.size())
-	return &(docs[position]);
+	return docs[position];
       else
 	return NULL;
     }
@@ -150,14 +183,30 @@ namespace catlm {
       if (it == idmap.end())
 	return NULL;
       
-      return &(docs[it->second]);
+      return docs[it->second];
+    }
+
+    int load_from_directory(string &path);
+    bool add_document(string &path, string &docid);
+
+    void debug_stats() {
+      std::cerr << "Documents " << docs.size() << "\n" <<
+	"Words " << wc << "\n";
+      std::cerr >> "OOVs " << oovs << "\n";
+    }
+
+    int oov_count() {
+      return oovs;
     }
 
 
   };
 
-}
 
+
+  int load_utf8_text(std::string &file, std::vector<int> &dest, 
+		     Vocabulary *vocab, bool add);
+}
 
 #endif
 

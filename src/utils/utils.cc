@@ -18,11 +18,9 @@
 
 #include "utils.h"
 
-namespace {
+using namespace std;
   
-  using namespace std;
-  
-  int read_set(string &filename, set<int>& strset, int(*idlookup)(string&)) {
+int read_set(string &filename, set<int>& strset, int(*idlookup)(string&)) {
     ifstream inf;
     int id;
     int count = 0;
@@ -74,8 +72,8 @@ namespace {
   }
   
   
-  int read_map(string &filename, map<string, int>& strmap, 
-	       vector<string> *idlist) {
+  int read_map(std::string &filename, std::map<std::string, int>& strmap, 
+	       std::vector<std::string> *idlist) {
     ifstream inf;
     int id = -1;
     int max = 0;
@@ -86,19 +84,19 @@ namespace {
     inf.open(filename.c_str());
     if (inf.is_open()) {
 	while(!inf.eof()) { 
-	    inf >> word;
-	    if ( word.size() < 1 ) continue;
-	    if (inf.eof()) break;
 	    inf >> val;
 	    if (inf.eof()) break;
+	    inf >> word;
+	    if (inf.eof()) break;
+	    if ( word.size() < 1 ) continue;
 	    
 	    if (val >= 0)
 	      strmap[word]=val;
 	    else
 	      continue;
 	    if (idlist) {
-	      if (val > idlist->size())
-		idlist->resize(val, string(""));
+	      if (val >= idlist->size())
+		idlist->resize(val+1, string(""));
 	      (*idlist)[val]=word;
 	    }
 	    
@@ -139,7 +137,7 @@ namespace {
     return strmap.size();
 }
   
-  int write_map(std::string &filename, std::map<int, double>& strmap,
+int write_map(std::string &filename, std::map<int, double>& strmap,
 	      std::vector<string>& vocab) {
 
     FILE *fp;
@@ -163,4 +161,48 @@ namespace {
     return count;
     
 }
+
+
+int write_map(std::string &filename, std::map<std::string, int>& strmap) {
+
+    FILE *fp;
+    //open FILE, ">:utf8", $fweights;
+    fp = fopen(filename.c_str(), "w");
+    map<string,int>::iterator si;
+    int count = 0;
+    if (fp) {
+
+	for (si=strmap.begin(); si != strmap.end(); si++) {
+	  fprintf(fp, "%d %s\n", (*si).second,  (*si).first.c_str());
+	  count++;
+	}
+		
+	fclose(fp);
+	
+    }
+    
+    return count;
+    
 }
+
+int write_vector(std::string &filename, std::vector<std::string>& list) {
+
+    FILE *fp;
+    //open FILE, ">:utf8", $fweights;
+    fp = fopen(filename.c_str(), "w");
+    int count = 0;
+    if (fp) {
+      int i=0;
+      for (i=0; i < list.size(); i++) {
+	fprintf(fp, "%d %s\n", i, list[i].c_str());
+	count++;
+      }
+      
+      fclose(fp);
+	
+    }
+    
+    return count;
+    
+}
+

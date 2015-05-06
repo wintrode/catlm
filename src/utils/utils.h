@@ -36,6 +36,10 @@
 int write_map(std::string &filename, std::map<int, double>& strmap,
 	      std::vector<std::string>& vocab);
 
+int write_vector(std::string &filename, std::vector<std::string>& list);
+
+int write_map(std::string &filename, std::map<std::string,int>& strmap);
+
 int read_counts(std::string &filename, std::map<int, double>& strmap,
 		int(*idlookup)(std::string&));
 
