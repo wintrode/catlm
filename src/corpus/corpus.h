@@ -192,7 +192,7 @@ namespace catlm {
     void debug_stats() {
       std::cerr << "Documents " << docs.size() << "\n" <<
 	"Words " << wc << "\n";
-      std::cerr >> "OOVs " << oovs << "\n";
+      std::cerr << "OOVs " << oovs << "\n";
     }
 
     int oov_count() {
