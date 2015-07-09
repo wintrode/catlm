@@ -43,30 +43,42 @@ char* first_line=(char*)&gzip_out[0];
 char* current_line=first_line;
 char* next_line=first_line;
 char hangover[1000];
-bool readLine(FILE* infile,char* line,bool gzipped){
-    if(!gzipped)
-        return fgets(line, sizeof(line), infile) != NULL;
-    else{
-        bool ok=true;
-        current_line=next_line;
-        if(!current_line || strlen(current_line)==0 || next_line-current_line>OUT_CHUNK){
-            current_line=first_line;
-            size_t bytes_read = fread (gzip_in, sizeof (char), CHUNK, infile);
-            ok=inflate_gzip(infile,strm,bytes_read);
-            strcpy(line,hangover);
-        }
-        if(ok){
-            next_line=strstr(current_line,"\n");
-            if(next_line){
-                next_line[0]=0;
-                next_line++;
-                strcpy(line+strlen(hangover),current_line);
-                hangover[0]=0;
-            }else{
-                strcpy(hangover,current_line);
-                line[0]=0;// skip that one!!
-            }
-        }
-        return ok;
+
+int readLine(FILE* infile,char* line,bool gzipped, int bsize){
+  char *tmp; int len;
+  if(!gzipped) {
+    tmp = fgets(line, bsize, infile);
+    // replace newline w/ \0
+    len = strlen(line);
+    if (len > 0 && line[len-1] == '\n') 
+      line[len-1]=0;
+
+    return tmp != NULL;
+  }
+  else {
+    int ok=1; //true;
+    current_line=next_line;
+    if(!current_line || strlen(current_line)==0 || next_line-current_line>OUT_CHUNK){
+      current_line=first_line;
+      size_t bytes_read = fread (gzip_in, sizeof (char), CHUNK, infile);
+      if (!inflate_gzip(infile,strm,bytes_read))
+	ok = 0;
+      strcpy(line,hangover);
     }
+    if(ok){
+      next_line=strstr(current_line,"\n");
+      if(next_line){
+	next_line[0]=0;
+	next_line++;
+	strcpy(line+strlen(hangover),current_line);
+	hangover[0]=0;
+      }else{
+	strcpy(hangover,current_line);
+	line[0]=0;// skip that one!!
+	//fprintf(stdout, "blank\n");
+	ok = 2;
+      }
+    }
+    return ok;
+  }
 }

@@ -3,7 +3,7 @@
 #include <getopt.h>
 #include <iostream>
 #include "utils/vocab_trie.h"
-#include "utils/zlibutil.h"
+
 
 #include <string.h>
 
@@ -19,6 +19,8 @@ int main(int argc, char **argv) {
   char *fname = NULL;
   char *outpref = NULL;
   int order = 3;
+
+  VocabTrie vt;
 
 
   //Specifying the expected options
@@ -50,24 +52,30 @@ int main(int argc, char **argv) {
   }
 
   char *file;
-  char *outfile;
+  char *text;
 
-  file = argv[optind+1];
-  outfile = argv[optind+2];
+  file = argv[optind];
+  text = argv[optind+1];
 
-  char line[0x10000];
-  FILE *infile=fopen(file, "r");
-  int len = strlen(file);
-  bool gzipped=(len > 3 && strncmp(file+len-3, ".gz",3)==0);
-  if(gzipped) 
-    init_gzip_stream(infile,&line[0]);
-  while (readLine(infile,line,gzipped)) {
-    if(line[0]==0)continue;// skip gzip new_block
-    printf(line);
+  int ng = vt.load(file);
+  printf("Processed %d n-grams\n", ng);
+
+  FILE* tf = fopen(text, "r");
+  
+  std::map<int, double> vec;
+
+  char buf[1000];
+  char *ptr=0;
+  while (fgets(buf, 999, tf)) {
+    ptr = strchr(buf,'\n');
+    if (ptr)
+      *ptr=0;
+    //printf("%s\n", buf);
+
+    vt.extract_vec(buf, vec, 3);
   }
 
-
-
+  fclose(tf);
 
 }
 

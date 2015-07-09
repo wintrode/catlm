@@ -23,7 +23,7 @@
 
 z_stream init_gzip_stream(FILE* file,char* out);
 bool inflate_gzip(FILE* file, z_stream strm,size_t bytes_read);
-bool readLine(FILE* infile,char* line,bool gzipped);
+int readLine(FILE* infile,char* line,bool gzipped,int bsize);
 
 
 #endif

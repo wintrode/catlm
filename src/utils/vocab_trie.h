@@ -49,17 +49,20 @@ namespace catlm {
     VocabTrie();
     ~VocabTrie();
 
-    int insert(std::vector<string> &words);
-    int insert(std::vector<string> &words, int id);
+    int load(const char* file);
+
+    int insert(std::vector<const char*> &words);
+    int insert(std::vector<const char*> &words, int id);
     
-    int get_id(std::vector<string> &words);
+    int get_id(std::vector<const char*> &words);
 
-
+    void extract_vec(const char* text, std::map<int, double> &vec, int maxorder);
+    
   private:
     int maxid;
     VocabNode *root;
     
-    VocabNode *insert(VocabNode *here, std::vector<string> &words, int idx);
+    VocabNode *insert(VocabNode *here, std::vector<const char*> &words, int idx);
       
   };
 
