@@ -32,13 +32,15 @@ namespace catlm {
     
   public:
     int id;
+    VocabNode *parent;
+    std::map<string, VocabNode*> children;
     
-    VocabNode(int vid);
+    VocabNode(int vid, VocabNode *vparent);
     ~VocabNode();
 
   private:    
-    VocabNode *parent;
-    std::map<string, VocabNode*> children;
+
+    
   };
 
   class VocabTrie {
@@ -47,16 +49,17 @@ namespace catlm {
     VocabTrie();
     ~VocabTrie();
 
-    int insert(vector<string> &words);
-    int insert(vector<string> &words, int id);
+    int insert(std::vector<string> &words);
+    int insert(std::vector<string> &words, int id);
     
-    int get_id(vector<string> &words);
+    int get_id(std::vector<string> &words);
 
 
   private:
+    int maxid;
     VocabNode *root;
     
-    int insert(VocabNode *here, vector<string> &words, int idx);
+    VocabNode *insert(VocabNode *here, std::vector<string> &words, int idx);
       
   };
 

@@ -199,6 +199,9 @@ namespace catlm {
       return oovs;
     }
 
+    int size() {
+      return docs.size();
+    }
 
   };
 
