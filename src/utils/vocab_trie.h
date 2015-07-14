@@ -55,8 +55,12 @@ namespace catlm {
     int insert(std::vector<const char*> &words, int id);
     
     int get_id(std::vector<const char*> &words);
+    int get_id(std::vector<string> &words, int start, int len);
 
     void extract_vec(const char* text, std::map<int, double> &vec, int maxorder);
+    int get_ngram_count() {
+      return maxid+1;
+    }
     
   private:
     int maxid;

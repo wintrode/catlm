@@ -30,6 +30,7 @@
 #include <map>
 #include <vector>
 #include <string>
+#include <sstream>
 
 #include <stdio.h>
 
@@ -52,4 +53,7 @@ int read_map(std::string &filename, std::map<std::string, int>& strmap,
 int read_set(std::string &filename, std::set<int>& strset, 
 	     int(*idlookup)(std::string&));
 
+int split(const std::string &s, char delim, std::vector<std::string> &elems);
+
 #endif
+

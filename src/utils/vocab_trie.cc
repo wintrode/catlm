@@ -81,33 +81,62 @@ int VocabTrie::get_id(std::vector<const char*> &words) {
 
 }
 
+
+int VocabTrie::get_id(std::vector<string> &words, int pos, int len) {
+  VocabNode *node = root;
+  //int pos = 0;
+  std::map<string,VocabNode*>::iterator it;
+  string w;
+  int max = pos+len;
+  if (pos + len > words.size())
+    return -1; // error
+
+  while (node && pos < max ) {
+    //w = words[pos];    
+    it = node->children.find(words[pos]);
+    if (it == node->children.end())
+      break; // not found
+
+    node = it->second;
+    pos++;
+      
+  }
+  if (pos == max) 
+    return node->id;
+  
+  return -1;
+  
+
+}
+
 int VocabTrie::load(const char* file) {
   char line[0x10000];
   int bsize = 0x10000;
   char *sep, *sep2;
   fprintf(stderr, "Opening %s %d for reading\n", file, optind);
 
-  FILE *infile=fopen(file, "r");
+  FILE *infile=NULL;
+  gzFile infd = 0;
   int len = strlen(file);
   bool gzipped=(len > 3 && strncmp(file+len-3, ".gz",3)==0);
 
   if(gzipped) 
-    init_gzip_stream(infile,&line[0]);
-
+    infd = gzopen(file, "r");
+  else
+    infile = fopen(file, "r");
   std::vector<int> ngc(3);
   int ng = 0;
 
   int count,pos;
 
   std::vector<const char*> ngram;
-
-  while (readLine(infile,line,gzipped,bsize)) {
+  int status=0;
+  while (readLine(infile,infd, line, bsize)) {
     // chec
+    if (status == 2) continue;
     len = strlen(line);
     if (len == 0)
       continue;
-
-    //      printf("%s\n",line);
 
     //    if (1) continue;
 
@@ -131,10 +160,10 @@ int VocabTrie::load(const char* file) {
       if (sep) {
 	*sep=0;
 	if (ng > 0) 
-	  printf("processed %d %d-grams\n", count, ng);
+	  fprintf(stderr, "processed %d %d-grams\n", count, ng);
 	ng = atoi(line+1);
 	
-	printf("processing %d-grams\n", ng);
+	fprintf(stderr, "processing %d-grams\n", ng);
 	count = 0;
       }
     }
@@ -180,10 +209,13 @@ int VocabTrie::load(const char* file) {
     }
   }
 
-  fclose(infile);
+  if (infile)
+    fclose(infile);
+  else
+    gzclose(infd);
 
   if (ng > 0) 
-    printf("processed %d %d-grams\n", count, ng);
+    fprintf(stderr, "processed %d %d-grams\n", count, ng);
 
   return maxid+1;
 

@@ -21,9 +21,7 @@
 
 #include <zlib.h>
 
-z_stream init_gzip_stream(FILE* file,char* out);
-bool inflate_gzip(FILE* file, z_stream strm,size_t bytes_read);
-int readLine(FILE* infile,char* line,bool gzipped,int bsize);
+bool readLine(FILE* infile, gzFile intfd, char* line,int bsize);
 
 
 #endif

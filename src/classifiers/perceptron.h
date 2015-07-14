@@ -24,6 +24,8 @@
 #include <map>
 #include <vector>
 
+typedef std::map<int, double> fvec;
+typedef std::map<int, double>::iterator fiterator;
 
 namespace catlm {
 
@@ -32,10 +34,38 @@ namespace catlm {
 
   class Perceptron {
 
+  private:
+    double *alpha;
+    double *amean;
+    int N;
+    int fmax;
+
+
   public:
-    Perceptron();
+    Perceptron(int dim);
     ~Perceptron();
 
+    double get_alpha(int i) {
+      if (i >= 0 && i <= fmax)
+        return alpha[i];
+      else
+        return 0.0;
+    }
+
+    double score_example(fvec &hyp) {
+      double score = 0.0;
+      fiterator it;
+      for (it = hyp.begin(); it != hyp.end(); it++) {
+        if (it->first >= 0 && it->first <= fmax)
+          score += it->second * alpha[it->first];
+      }
+      return score;
+    }
+
+    void update_param(fvec &truth, fvec &hyp);
+
+    bool read(FILE *fp);
+    void write(FILE *fp);
 
   };
 

@@ -4,7 +4,6 @@
 #include <iostream>
 #include "utils/vocab_trie.h"
 
-
 #include <string.h>
 
 using namespace catlm;
@@ -21,7 +20,6 @@ int main(int argc, char **argv) {
   int order = 3;
 
   VocabTrie vt;
-
 
   //Specifying the expected options
   //The two options l and b expect numbers as argument
@@ -58,7 +56,9 @@ int main(int argc, char **argv) {
   text = argv[optind+1];
 
   int ng = vt.load(file);
-  printf("Processed %d n-grams\n", ng);
+  //printf("Processed %d n-grams\n", ng);
+
+  exit(1);
 
   FILE* tf = fopen(text, "r");
   
@@ -71,7 +71,7 @@ int main(int argc, char **argv) {
     if (ptr)
       *ptr=0;
     //printf("%s\n", buf);
-
+    
     vt.extract_vec(buf, vec, 3);
   }
 
