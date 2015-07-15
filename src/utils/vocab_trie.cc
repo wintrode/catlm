@@ -11,6 +11,7 @@ using std::string;
 
 VocabNode::VocabNode(int vid, VocabNode *vparent) : id (vid), parent (vparent) {
   // nothign to be done?
+  
 }
 
 VocabNode::~VocabNode() {
@@ -22,7 +23,7 @@ VocabNode::~VocabNode() {
 }
 
 
-VocabTrie::VocabTrie() {
+VocabTrie::VocabTrie() : unk("<unk>") {
   root = new VocabNode(-1, (VocabNode*)NULL);
   maxid = -1;
 }
@@ -38,6 +39,9 @@ int VocabTrie::insert(std::vector<const char*> &words) {
   VocabNode *node = root;
   for (pos=0; pos < words.size(); pos++) {
     node = insert(node, words, pos);
+    if (pos == 0) {
+      unigram[node->id]=words[0];
+    }
   }
   return node->id;
 }
@@ -283,4 +287,14 @@ void VocabTrie::extract_vec(const char* text, std::map<int, double> &vec, int ma
 
   delete [] buf;
   
+}
+
+
+string &VocabTrie::get_word(int wid) {
+  std::map<int,string>::iterator it;
+  it = unigram.find(wid);
+  if (it == unigram.end())
+    return unk;
+  else
+    return it->second;
 }

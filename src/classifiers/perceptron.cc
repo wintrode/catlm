@@ -68,7 +68,7 @@ void Perceptron::write(FILE *fp) {
 bool Perceptron::read(FILE *fp) {
   int x;
   int readb = fread(&x, sizeof(int), 1, fp);
-  if (readb != sizeof(int)) {
+  if (readb != 1) {
     fclose(fp);
     return false;
   }
@@ -79,6 +79,9 @@ bool Perceptron::read(FILE *fp) {
   if (amean)
     delete [] amean;
   
+  alpha= new double[x];
+  amean = new double[x];
+
   fmax = x-1;
   readb = fread(alpha, sizeof(double), x, fp);
   if (readb != x) {
@@ -91,15 +94,25 @@ bool Perceptron::read(FILE *fp) {
     fclose(fp);
     return false;
   }
+
+  
   
   readb = fread(&x, sizeof(int), 1, fp);
-  if (readb != sizeof(int)) {
+  if (readb != 1) {
     fclose(fp);
     return false;
   }
 
   N=x; // normalize amean?
+
+  //  memcpy(alpha, amean, sizeof(double)* fmax);
+  // average alpha 
+  //for (x=0; x < fmax; x++) {
+  //  alpha[x] /= (double) N;
+  //}
   
+
+
   return true;
     
 

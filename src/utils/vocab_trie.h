@@ -53,7 +53,8 @@ namespace catlm {
 
     int insert(std::vector<const char*> &words);
     int insert(std::vector<const char*> &words, int id);
-    
+
+    string &get_word(int wid);
     int get_id(std::vector<const char*> &words);
     int get_id(std::vector<string> &words, int start, int len);
 
@@ -68,6 +69,9 @@ namespace catlm {
     
     VocabNode *insert(VocabNode *here, std::vector<const char*> &words, int idx);
       
+    std::map<int, string> unigram;
+    
+    string unk;
   };
 
 }

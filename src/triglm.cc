@@ -140,6 +140,12 @@ int main(int argc, char **argv) {
   }
   
 
+  unigram[0] = "<eps>";
+  vt.insert(unigram);
+  unigram[0] = "<unk>";
+  vt.insert(unigram);
+
+
   TriggerLM tlm(vt, cache_order);
 
 
@@ -183,14 +189,6 @@ int main(int argc, char **argv) {
 
     }
 
-    tlm.debug();
-
-    // for each segment, 
-    // extract n=gram vector
-    // score loss function and update vector
-
-    if (model)
-      tlm.write(model, false);
 
     if (gzipped)
       gzclose(infd);
@@ -199,6 +197,16 @@ int main(int argc, char **argv) {
         
 
   }
+
+
+    tlm.debug();
+
+    // for each segment, 
+    // extract n=gram vector
+    // score loss function and update vector
+
+    if (model)
+      tlm.write(model, false);
 
 
 }
