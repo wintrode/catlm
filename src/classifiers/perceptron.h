@@ -24,6 +24,8 @@
 #include <map>
 #include <vector>
 
+#include <math.h>
+
 typedef std::map<int, double> fvec;
 typedef std::map<int, double>::iterator fiterator;
 
@@ -40,6 +42,7 @@ namespace catlm {
     int N;
     int fmax;
 
+    bool fixedA0;
 
   public:
     Perceptron(int dim);
@@ -61,11 +64,42 @@ namespace catlm {
       }
       return score;
     }
+    
+    double l1Diff(fvec &hyp, fvec &truth) {
+      double score = 0.0;
+      fiterator it;
+      for (it = hyp.begin(); it != hyp.end(); it++) {
+        if (it->first >= 0 && it->first <= fmax) {
+          if (truth.count(it->first) > 0)
+            score += fabs(it->second - truth[it->first]);
+          else 
+            score += fabs(it->second);
+        }
+        
+      }
+      for (it = truth.begin(); it != truth.end(); it++) {
+        if (hyp.count(it->first) == 0) // already got it
+          score += fabs(it->second);
+      }
+
+      return score;
+    }
 
     void update_param(fvec &truth, fvec &hyp);
 
     bool read(FILE *fp);
     void write(FILE *fp);
+
+    void setFixedA0(bool _fixedA0) {
+      fixedA0=_fixedA0;
+    }
+
+    void setAlpha0(double alpha0) {
+      if (fmax >= 0) {
+        alpha[0] = alpha0;
+        amean[0] = alpha0;
+      }
+    }
 
   };
 

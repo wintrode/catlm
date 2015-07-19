@@ -27,6 +27,7 @@ int main(int argc, char **argv) {
   int niterations = 1000;
 
   char *model = NULL;
+  double alpha0 = 1.0;
 
   //Specifying the expected options
   //The two options l and b expect numbers as argument
@@ -34,6 +35,7 @@ int main(int argc, char **argv) {
     {"iterations", required_argument, 0,  'i' },
     {"order",      required_argument, 0,  'o' },
     {"model",      required_argument, 0,  'm' },
+    {"alpha",      required_argument, 0,  'a' },
     {0,           0,                  0,  0   }
   };
   
@@ -47,6 +49,8 @@ int main(int argc, char **argv) {
     case 'i' : niterations = atoi(optarg);
       break;
     case 'o' : cache_order = atoi(optarg);
+      break;
+    case 'a' : alpha0 = strtod(optarg, 0);
       break;
     case 'm' : model = optarg;
       break;
@@ -116,21 +120,9 @@ int main(int argc, char **argv) {
       }
     }
 
-
-  /* for (i=1; i < words.size(); i++) {
-      if (words[i].length() == 0)
-        continue;
-      unigram[0]=words[i].c_str();
-      id = vt.get_id(unigram);
-      if (id >= 0)
-        wids.push_back(id);
-      //      else
-      //  wids.push_back(
-
-      }*/
     training[key]=wids;
     trexamples[key]=trvec;
-    //    std::cerr<< key << "\n";      
+
 
   }
 
@@ -148,6 +140,9 @@ int main(int argc, char **argv) {
 
   TriggerLM tlm(vt, cache_order);
 
+  if (alpha0 > 0.0)
+    tlm.setAlpha0(alpha0);
+
 
   // do I read the n-best file in once or at each iteration...
   FILE *infile=NULL;
@@ -155,7 +150,7 @@ int main(int argc, char **argv) {
   int len = strlen(nbest);
   bool gzipped=(len > 3 && strncmp(nbest+len-3, ".gz",3)==0);
 
-  cerr << "running for " << niterations << "\n";
+  cerr << "Training for " << niterations << "\n";
   int n;
   for (n=0; n < niterations; n++) {
     
@@ -168,6 +163,7 @@ int main(int argc, char **argv) {
     // open file, next_nbest_features(vector of feature vectors, with scores)
     vector<map<int, double> > uvecs;
     vector<double> scores;
+
     int nb = 0;
     int count =0 ;
     string key;
@@ -175,18 +171,10 @@ int main(int argc, char **argv) {
     tlm.reset();
     vector<vector<int> > nbestlist;
     cerr << "Iteraton " << n << "\n";
+    tlm.reset_counters();
     while ( (nb = tlm.read_nbest_feats(infile, infd, uvecs, scores)) > 0) {
-      // run perceptron?
-      //if (count++ > 100)
-        //        break;
       //fprintf(stderr, "Found %d-best utts for %s\n", nb, tlm.get_key().c_str());
       tlm.train_example(trexamples[key], uvecs, scores);
-      //      for (i=0; i < uvecs.size();i++) {
-      //  fprintf(stderr, "%s: ", tlm.get_key().c_str());
-        //print_vector(stderr, uvecs[i]);
-      //  key = tlm.get_key();
-      //}
-
     }
 
 
@@ -199,14 +187,14 @@ int main(int argc, char **argv) {
   }
 
 
-    tlm.debug();
+  tlm.debug();
 
-    // for each segment, 
-    // extract n=gram vector
-    // score loss function and update vector
-
-    if (model)
-      tlm.write(model, false);
+  // for each segment, 
+  // extract n=gram vector
+  // score loss function and update vector
+  
+  if (model)
+    tlm.write(model, false);
 
 
 }

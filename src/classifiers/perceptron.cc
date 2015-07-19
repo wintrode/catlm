@@ -7,7 +7,7 @@ using namespace catlm;
 
 using std::string;
 
-Perceptron::Perceptron(int dim) : fmax(dim-1) {
+Perceptron::Perceptron(int dim) : fmax(dim-1), fixedA0(false) {
   // nothign to be done?
   alpha=new double[dim];
   amean = new double[dim];
@@ -34,6 +34,9 @@ void Perceptron::update_param(fvec &truth, fvec &hyp) {
       else
         adiff = it->second;
 
+      if (fixedA0 && it->first == 0)
+        continue;
+
       amean[it->first] += alpha[it->first] + adiff;
       alpha[it->first] += adiff;
     }
@@ -44,6 +47,10 @@ void Perceptron::update_param(fvec &truth, fvec &hyp) {
       if (hyp.count(it->first) > 0)
         continue;
       adiff = -truth[it->first];
+
+      if (fixedA0 && it->first == 0)
+        continue;
+
       amean[it->first] += alpha[it->first] + adiff;
       alpha[it->first] += adiff;
 
@@ -105,11 +112,11 @@ bool Perceptron::read(FILE *fp) {
 
   N=x; // normalize amean?
 
-  //  memcpy(alpha, amean, sizeof(double)* fmax);
+  memcpy(alpha, amean, sizeof(double)* fmax);
   // average alpha 
-  //for (x=0; x < fmax; x++) {
-  //  alpha[x] /= (double) N;
-  //}
+  for (x=0; x < fmax; x++) {
+    alpha[x] /= (double) N;
+  }
   
 
 
