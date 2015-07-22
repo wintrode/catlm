@@ -119,7 +119,7 @@ int main(int argc, char **argv) {
   vector<vector<int> > nbestlist;
   cerr << "Iteraton " << n << "\n";
   tlm.save_utts();
-  while ( (nb = tlm.read_nbest_feats(infile, infd, uvecs, scores, history_vec)) > 0) {
+  while ( (nb = tlm.read_nbest_feats(infile, infd, uvecs, scores, history_vec, 0)) > 0) {
 
     //    printf("# original utterance - %f\n", n, scores[0]);
     idptr = strrchr(tlm.get_key().c_str(), '_');

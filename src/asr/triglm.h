@@ -67,7 +67,8 @@ namespace catlm {
     int read_nbest_feats(FILE *infile, gzFile infd, 
                        std::vector<std::map<int, double> > &uvecs, 
                          std::vector<double> &scores, 
-                         std::map<int, double> &hist);
+                         std::map<int, double> &hist,
+			 std::vector<std::vector<int> > *nbestlist);
 
     string &get_key() { return current_key; }
     int train_example(std::map<int, double> &truth, 

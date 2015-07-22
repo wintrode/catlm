@@ -30,7 +30,8 @@ void TriggerLM::reset_counters() {
 int TriggerLM::read_nbest_feats(FILE *infile, gzFile infd, 
                                 std::vector<std::map<int, double> > &uvecs, 
                                 std::vector<double> &scores,
-                                std::map<int, double> &hist) {
+                                std::map<int, double> &hist,
+				std::vector<std::vector<int> > *nbestlist) {
   
   //string key;
   int count = 0 ;
@@ -67,6 +68,9 @@ int TriggerLM::read_nbest_feats(FILE *infile, gzFile infd,
   vector<string > words;
   map<int, double> vec;
 
+  if (nbestlist)
+    nbestlist->clear();
+
 
   if (saveUtts) {
     for(i=0; i < utts.size(); i++) {
@@ -91,8 +95,11 @@ int TriggerLM::read_nbest_feats(FILE *infile, gzFile infd,
     words.resize(0);
     vec.clear();
     score = 0.0;
+    wids.resize(0);
+    if (nbestlist)
+      nbestlist->push_back(wids);
+
     if (saveUtts) {
-      wids.resize(0);
       uscores.resize(0);
       lens.resize(0);
     }
@@ -159,13 +166,17 @@ int TriggerLM::read_nbest_feats(FILE *infile, gzFile infd,
       }
       
       words.push_back(wd);
+
+      unigram[0]=wd;
+      id = vt.get_id(unigram, 0,1);
+      if (id < 0) {
+	unigram[0]="<unk>";
+	id = vt.get_id(unigram, 0,1);
+      }
+      if (nbestlist)
+	(*nbestlist)[count].push_back(id);
+
       if (saveUtts) {
-        unigram[0]=wd;
-        id = vt.get_id(unigram, 0,1);
-        if (id < 0) {
-          unigram[0]="<unk>";
-          id = vt.get_id(unigram, 0,1);
-        }
         wids.push_back(id);
         lens.push_back(len);
         uscores.push_back(am+lm);

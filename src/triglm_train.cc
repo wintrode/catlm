@@ -19,6 +19,56 @@ void print_usage() {
 
 }
 
+inline double  min3(double v1, double v2, double v3) {
+  if (v1 <= v2 && v1 <= v3) 
+    return v1;
+  if (v2 <= v1 && v2 <= v2)
+    return v2;
+  if (v3 <= v1 && v3 <= v2)
+    return v3;
+  
+  return v1;
+}
+
+double get_error(vector<int> &ref, vector<int> &hyp) {
+  double err = 0.0;
+  double **dp;
+  dp = new double*[ref.size()+1];
+  int i,j;
+  for (i=0; i <= ref.size(); i++) {
+    dp[i] = new double[hyp.size()+1];
+    if (i==0) {
+      dp[0][0]=0.0;
+      for (j=1; j <= hyp.size(); j++) 
+	dp[0][j]=j;
+    }
+    else {
+      dp[i][0]=i;
+    }
+  }
+  double cost=0.0;
+  for (i=1; i <= ref.size(); i++) {
+    for (j=1; j <= hyp.size(); j++) {
+      if (ref[i-1]==hyp[j-1]) // correct
+	cost = 0;
+      else
+	cost = 1.0;
+      dp[i][j] = min3(dp[i-1][j-1]+cost, dp[i][j-1]+1, dp[i-1][j]+1);
+    }
+  }
+
+  err = -dp[ref.size()][hyp.size()];
+
+  for (i=0; i <= ref.size(); i++) 
+    delete [] dp[i];
+
+  delete [] dp;
+
+  return err;
+  
+  
+}
+
 int main(int argc, char **argv) { 
   char *fname = NULL;
   char *outpref = NULL;
@@ -190,17 +240,29 @@ int main(int argc, char **argv) {
     int idlen;
     const char *idptr;
 
+    int mini;
+    double minerr=1000.0; 
+    double err = 0.0;
     map<int,double> history_vec;
     
-    while ( (nb = tlm.read_nbest_feats(infile, infd, uvecs, scores, history_vec)) > 0) {
+    while ( (nb = tlm.read_nbest_feats(infile, infd, uvecs, scores, history_vec, &nbestlist)) > 0) {
       //fprintf(stderr, "Found %d-best utts for %s\n", nb, tlm.get_key().c_str());
+      
+      mini = 0;
+      for (i=0; i < nb; i++) {
+	err = get_error(training[tlm.get_key()], nbestlist[i]);
+	if (err < minerr) {
+	  mini = 0; minerr = err;
+	}
+      }
 
       idptr = strrchr(tlm.get_key().c_str(), '_');
       idlen = idptr-tlm.get_key().c_str();
       if (strncmp(key.c_str(), tlm.get_key().c_str(), idlen))
         history_vec.clear();
 
-      i = tlm.train_example(trexamples[tlm.get_key()], uvecs, scores);
+      //i = tlm.train_example(trexamples[tlm.get_key()], uvecs, scores);
+      i = tlm.train_example(uvecs[mini], uvecs, scores);
       count++;
       if (count%1000==0 )
         cerr << ".";
