@@ -23,25 +23,29 @@ int main(int argc, char **argv) {
   char *fname = NULL;
   char *outpref = NULL;
   int cache_order = 1;
+  int min_order = 1;
   int ntopics = 50;
   int niterations = 1000;
 
   char *model = NULL;
   double alpha0 = 1.0;
+  bool debug=false;
 
   //Specifying the expected options
   //The two options l and b expect numbers as argument
   static struct option long_options[] = {
     {"iterations", required_argument, 0,  'i' },
     {"order",      required_argument, 0,  'o' },
+    {"min-order",  required_argument, 0,  'O' },
     {"model",      required_argument, 0,  'm' },
+    {"debug",      no_argument,       0,  'd' },
     {"alpha",      required_argument, 0,  'a' },
     {0,           0,                  0,  0   }
   };
   
   int long_index =0;
   int opt = 0;
-  while ((opt = getopt_long(argc, argv,"i:o:m:", 
+  while ((opt = getopt_long(argc, argv,"i:o:m:da:O:", 
 			    long_options, &long_index )) != -1) {
     
 
@@ -50,9 +54,13 @@ int main(int argc, char **argv) {
       break;
     case 'o' : cache_order = atoi(optarg);
       break;
+    case 'O' : min_order = atoi(optarg);
+      break;
     case 'a' : alpha0 = strtod(optarg, 0);
       break;
     case 'm' : model = optarg;
+      break;
+    case 'd' : debug = true;
       break;
     default: 
       std::cerr << optarg <<"\n";
@@ -96,6 +104,13 @@ int main(int argc, char **argv) {
   int id;
   int i;
 
+  unigram[0] = "<eps>";
+  vt.insert(unigram);
+  unigram[0] = "<unk>";
+  vt.insert(unigram);
+
+  TriggerLM tlm(vt, cache_order, min_order);
+
   map<int, double> trvec;
 
   while (getline( *f, line )) {
@@ -112,17 +127,23 @@ int main(int argc, char **argv) {
         id = vt.get_id(words, i, n);
         if (n==1 && id >= 0)
             wids.push_back(id);
+
+        if (n < min_order)
+          continue; // skip unigrams??
+
         if (trvec.count(id) > 0) 
-          trvec[id] = trvec[id]+1.0;
+          trvec[id+1] = trvec[id+1]+1.0;
         else 
-          trvec[id] = 1.0;
+          trvec[id+1] = 1.0;
         
       }
     }
 
+    // what should  trvec[0] be?
+
     training[key]=wids;
     trexamples[key]=trvec;
-
+    //print_vector(stderr, trvec);
 
   }
 
@@ -132,13 +153,6 @@ int main(int argc, char **argv) {
   }
   
 
-  unigram[0] = "<eps>";
-  vt.insert(unigram);
-  unigram[0] = "<unk>";
-  vt.insert(unigram);
-
-
-  TriggerLM tlm(vt, cache_order);
 
   if (alpha0 > 0.0)
     tlm.setAlpha0(alpha0);
@@ -172,9 +186,31 @@ int main(int argc, char **argv) {
     vector<vector<int> > nbestlist;
     cerr << "Iteraton " << n << "\n";
     tlm.reset_counters();
-    while ( (nb = tlm.read_nbest_feats(infile, infd, uvecs, scores)) > 0) {
+    
+    int idlen;
+    const char *idptr;
+
+    map<int,double> history_vec;
+    
+    while ( (nb = tlm.read_nbest_feats(infile, infd, uvecs, scores, history_vec)) > 0) {
       //fprintf(stderr, "Found %d-best utts for %s\n", nb, tlm.get_key().c_str());
-      tlm.train_example(trexamples[key], uvecs, scores);
+
+      idptr = strrchr(tlm.get_key().c_str(), '_');
+      idlen = idptr-tlm.get_key().c_str();
+      if (strncmp(key.c_str(), tlm.get_key().c_str(), idlen))
+        history_vec.clear();
+
+      i = tlm.train_example(trexamples[tlm.get_key()], uvecs, scores);
+      count++;
+      if (count%1000==0 )
+        cerr << ".";
+      
+      if (count % 10000==0)
+        cerr << count  << "\n";
+
+      add_vector(history_vec, uvecs[i], vt.get_ngram_count());
+
+      key = tlm.get_key();
     }
 
 
@@ -186,8 +222,8 @@ int main(int argc, char **argv) {
 
   }
 
-
-  tlm.debug();
+  if (debug)
+    tlm.debug();
 
   // for each segment, 
   // extract n=gram vector

@@ -37,7 +37,7 @@ void Perceptron::update_param(fvec &truth, fvec &hyp) {
       if (fixedA0 && it->first == 0)
         continue;
 
-      amean[it->first] += alpha[it->first] + adiff;
+
       alpha[it->first] += adiff;
     }
   }
@@ -51,13 +51,16 @@ void Perceptron::update_param(fvec &truth, fvec &hyp) {
       if (fixedA0 && it->first == 0)
         continue;
 
-      amean[it->first] += alpha[it->first] + adiff;
+      //amean[it->first] += alpha[it->first] + adiff;
       alpha[it->first] += adiff;
 
     }
 
   }
-  
+
+  int i=0;
+  for (i=0; i <= fmax;i++)
+    amean[i] += alpha[i]; 
   N++;
 
 }
@@ -112,8 +115,11 @@ bool Perceptron::read(FILE *fp) {
 
   N=x; // normalize amean?
 
+  double olda0=alpha[0];
   memcpy(alpha, amean, sizeof(double)* fmax);
   // average alpha 
+  //alpha[0]=10;
+  //alpha[0]=olda0;
   for (x=0; x < fmax; x++) {
     alpha[x] /= (double) N;
   }

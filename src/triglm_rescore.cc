@@ -23,6 +23,7 @@ int main(int argc, char **argv) {
   char *fname = NULL;
   char *outpref = NULL;
   int cache_order = 1;
+  int min_order=1;
   int niterations = 1000;
 
   char *lm = NULL;
@@ -31,18 +32,21 @@ int main(int argc, char **argv) {
   //The two options l and b expect numbers as argument
   static struct option long_options[] = {
     {"order",      required_argument, 0,  'o' },
+    {"min-order",      required_argument, 0,  'O' },
     {"lm",      required_argument, 0,  'l' },
     {0,           0,                  0,  0   }
   };
   
   int long_index =0;
   int opt = 0;
-  while ((opt = getopt_long(argc, argv,"o:l:", 
+  while ((opt = getopt_long(argc, argv,"o:l:O:", 
 			    long_options, &long_index )) != -1) {
     
 
     switch (opt) {
     case 'o' : cache_order = atoi(optarg);
+      break;
+    case 'O' : min_order = atoi(optarg);
       break;
     case 'l' : lm = optarg;
       break;
@@ -78,7 +82,7 @@ int main(int argc, char **argv) {
   vt.insert(unigram);
 
 
-  TriggerLM tlm(vt, cache_order);
+  TriggerLM tlm(vt, cache_order, min_order);
 
 
   // do I read the n-best file in once or at each iteration...
@@ -108,13 +112,20 @@ int main(int argc, char **argv) {
   int i;
   double st, end;
   NbestUtt *utt;
-
-  tlm.debug();
-
+  int idlen;
+  const char *idptr;
+  //  tlm.debug();
+  map<int, double> history_vec;
   vector<vector<int> > nbestlist;
   cerr << "Iteraton " << n << "\n";
   tlm.save_utts();
-  while ( (nb = tlm.read_nbest_feats(infile, infd, uvecs, scores)) > 0) {
+  while ( (nb = tlm.read_nbest_feats(infile, infd, uvecs, scores, history_vec)) > 0) {
+
+    //    printf("# original utterance - %f\n", n, scores[0]);
+    idptr = strrchr(tlm.get_key().c_str(), '_');
+    idlen = idptr-tlm.get_key().c_str();
+    if (strncmp(key.c_str(), tlm.get_key().c_str(), idlen))
+      history_vec.clear();
 
     n = tlm.rescore(uvecs, scores);
     //printf("# selected utterance %d %f\n", n, scores[n]);
@@ -123,11 +134,13 @@ int main(int argc, char **argv) {
     utt = tlm.get_utt(n);
     for (i=0; i < utt->wids.size(); i++) {
       end = st+ (double)utt->lens[i]/100.0;
-      printf("%s %0.2f 1 %0.2f %s %0.2f\n", key.c_str(), st, end-st, 
-             vt.get_word(utt->wids[i]).c_str(), utt->scores[i]);
+      printf("%s 1 %0.2f %0.2f %s %0.2f\n", key.c_str(), st, end-st, 
+             vt.get_word(utt->wids[i]).c_str(), 0.99 );//utt->scores[i]);
       st = end;
              
     }
+    
+    add_vector(history_vec, uvecs[n], vt.get_ngram_count());
 
   }
   
