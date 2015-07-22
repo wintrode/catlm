@@ -40,10 +40,10 @@ double get_error(vector<int> &ref, vector<int> &hyp) {
     if (i==0) {
       dp[0][0]=0.0;
       for (j=1; j <= hyp.size(); j++) 
-	dp[0][j]=j;
+	dp[0][j]=(double)j;
     }
     else {
-      dp[i][0]=i;
+      dp[i][0]=(double)i;
     }
   }
   double cost=0.0;
@@ -57,10 +57,17 @@ double get_error(vector<int> &ref, vector<int> &hyp) {
     }
   }
 
-  err = -dp[ref.size()][hyp.size()];
+  err = dp[ref.size()][hyp.size()];
 
-  for (i=0; i <= ref.size(); i++) 
+  /*for (i=0; i <= ref.size(); i++)  {
+    for (j=0; j <= hyp.size(); j++) {
+      fprintf(stderr, " %0.1f", dp[i][j]);
+    }
+    fprintf(stderr, "\n");
+
     delete [] dp[i];
+  }
+  */
 
   delete [] dp;
 
@@ -249,19 +256,22 @@ int main(int argc, char **argv) {
       //fprintf(stderr, "Found %d-best utts for %s\n", nb, tlm.get_key().c_str());
       
       mini = 0;
+      minerr = 1000;
       for (i=0; i < nb; i++) {
 	err = get_error(training[tlm.get_key()], nbestlist[i]);
+        //fprintf(stderr, "Found min %s-%d : %f\n", tlm.get_key().c_str(), i, err);
 	if (err < minerr) {
-	  mini = 0; minerr = err;
+	  mini = i; minerr = err;
 	}
       }
-
+      //fprintf(stderr, "Found min %s-%d : %f\n", tlm.get_key().c_str(), mini, minerr);
       idptr = strrchr(tlm.get_key().c_str(), '_');
       idlen = idptr-tlm.get_key().c_str();
       if (strncmp(key.c_str(), tlm.get_key().c_str(), idlen))
         history_vec.clear();
 
       //i = tlm.train_example(trexamples[tlm.get_key()], uvecs, scores);
+      //fprintf(stderr, "bow found %s-%d\n", tlm.get_key().c_str(), i);
       i = tlm.train_example(uvecs[mini], uvecs, scores);
       count++;
       if (count%1000==0 )

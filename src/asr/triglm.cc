@@ -1,4 +1,4 @@
-
+ 
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -310,11 +310,11 @@ int TriggerLM::train_example(map<int, double> &truth,
   for (i=0; i < scores.size(); i++) {
     score = p.score_example(fvecs[i]);
     scores[i]=score;
-    err = p.l1Diff(fvecs[i], truth);
-    errs.push_back(err);
-    if (err < minerr) { 
-      erri = i; minerr = err;
-    }
+    //    err = p.l1Diff(fvecs[i], truth);
+    //errs.push_back(err);
+    //if (err < minerr) { 
+    //  erri = i; minerr = err;
+    //}
     if (score < min) { //+scores[i] < min) {
       min = score; //  + scores[i];
       mini=i;
@@ -326,7 +326,7 @@ int TriggerLM::train_example(map<int, double> &truth,
     //fprintf (stderr, "Found minerr %d %f\n", erri, minerr);
     //    print_vector(stderr, fvecs[mini] );
     // print_vector(stderr, truth );
-    return mini;
+    //    return mini;
   }
   if (mini != 0)  {
     //fprintf(stderr, "Selcted %s-%d %f/%f %f/%f\n", current_key.c_str(), 
@@ -334,10 +334,11 @@ int TriggerLM::train_example(map<int, double> &truth,
     //print_vector(stderr, fvecs[mini] );
     //print_vector(stderr, truth );
   }
-  //p.update_param(truth, fvecs[mini]);
-  p.update_param(fvecs[erri], fvecs[mini]);
+  p.update_param(truth, fvecs[mini]);
+//p.update_param(fvecs[erri], fvecs[mini]);
 
-  return mini;
+  // return mini;
+  return erri;
 
 }
 
