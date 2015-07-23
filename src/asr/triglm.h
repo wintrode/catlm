@@ -49,17 +49,19 @@ namespace catlm {
     string lastkey;
     string current_key;
 
+    bool use_triggers;
     Perceptron p;
 
     bool saveUtts;
 
+    int ngram_count;
     int num_utts;
     std::vector<NbestUtt > utts;
 
     int lc;
 
   public:
-    TriggerLM(VocabTrie &vt, int _order, int _min_order=1);
+    TriggerLM(VocabTrie &vt, int _order, int _min_order=1, bool triggers=false);
     ~TriggerLM();
 
     void reset_counters();

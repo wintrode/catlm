@@ -11,11 +11,12 @@ using namespace std;
 
 #define CHUNK 32000
 
-TriggerLM::TriggerLM(VocabTrie &trie, int _order, int _min_order) : 
-  vt(trie), order(_order), 
-  p(trie.get_ngram_count()+1), min_order(_min_order) {
+TriggerLM::TriggerLM(VocabTrie &trie, int _order, int _min_order, bool triggers) : 
+  vt(trie), order(_order), use_triggers(triggers), 
+  p(((triggers)?2:1) * trie.get_ngram_count()+1 ), min_order(_min_order) {
   p.setFixedA0(true);
   saveUtts=false;
+  ngram_count = trie.get_ngram_count();
 }
 
 TriggerLM::~TriggerLM() {
@@ -212,21 +213,43 @@ int TriggerLM::read_nbest_feats(FILE *infile, gzFile infd,
     scores.push_back(score);
 
 
-    int n,id;
+    int n,id,j;
+    bool skip;
     // add all the 1-order in this utterance into the vector
     // offset by 1, since alpha[0] is fixed
     vec[0] = score;
 
+    int maxb = 0;
     for (i=0; i < words.size(); i++) {
-      if (!strcmp(words[i].c_str(), "<eps>")) 
-        continue; // don't add n-grams with the initial epsilon
+      if (!strcmp(words[i].c_str(), "<eps>"))  {
+        //  skip=true; break; // don't add n-grams with the initial epsilon
+        //continue;
+      }
       for (n=1; n <= order; n++) {  // do 1 thru order grams
         if (i == words.size() - (n-1) )
           continue;
         // if order ==1 screw it
         if (n < min_order)
           continue;
+        skip=false;
+        for (j=0; j < n; j++) {
+          if (i+j == words.size())
+            break;
+          if (!strcmp(words[i+j].c_str(), "<eps>"))  {
+            skip=true; break; // don't add n-grams with the initial epsilon
+          }
+          else if (!strcmp(words[i+j].c_str(), "<silence>")) {
+            skip=true; break;
+          }
+          else if (!strcmp(words[i+j].c_str(), "<noise>")) {
+            skip=true; break;
+          }
+        }
+       
+        if (skip) continue;
         id = vt.get_id(words, i, n);
+        //        if (n == 1 && id > maxb)
+        //  maxb=id; // lazy
         if (vec.count(id+1) > 0) 
           vec[id+1] = vec[id+1]+1.0;
         else 
@@ -235,16 +258,19 @@ int TriggerLM::read_nbest_feats(FILE *infile, gzFile infd,
       }
     }
 
-    map<int,double>::iterator it;
-    vector<int> adds;
-    for (it=vec.begin(); it != vec.end(); it++) {
-      if (it->second > 1 || hist.count(it->first) > 0)
-        adds.push_back(it->first);
+    if (use_triggers) {
+      map<int,double>::iterator it;
+      vector<int> adds;
+      for (it=vec.begin(); it != vec.end(); it++) {
+        if (it->second > 1 || hist.count(it->first) > 0)
+          adds.push_back(it->first);
+      }
+
+      for (i=0; i < adds.size(); i++) {
+        if (adds[i] <= maxb)
+          vec[adds[i]+ngram_count+1]=1;
+      }
     }
-
-    //for (i=0; i < adds.size(); i++)
-    //  vecs[adds[i]+max_ngram]=1;
-
     
     //print_vector(
     uvecs.push_back(vec);

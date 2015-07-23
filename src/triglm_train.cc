@@ -87,6 +87,7 @@ int main(int argc, char **argv) {
   char *model = NULL;
   double alpha0 = 1.0;
   bool debug=false;
+  bool triggers=false;
 
   //Specifying the expected options
   //The two options l and b expect numbers as argument
@@ -96,13 +97,14 @@ int main(int argc, char **argv) {
     {"min-order",  required_argument, 0,  'O' },
     {"model",      required_argument, 0,  'm' },
     {"debug",      no_argument,       0,  'd' },
+    {"triggers",   no_argument,       0,  't' },
     {"alpha",      required_argument, 0,  'a' },
     {0,           0,                  0,  0   }
   };
   
   int long_index =0;
   int opt = 0;
-  while ((opt = getopt_long(argc, argv,"i:o:m:da:O:", 
+  while ((opt = getopt_long(argc, argv,"i:o:m:da:O:t", 
 			    long_options, &long_index )) != -1) {
     
 
@@ -118,6 +120,8 @@ int main(int argc, char **argv) {
     case 'm' : model = optarg;
       break;
     case 'd' : debug = true;
+      break;
+    case 't' : triggers = true;
       break;
     default: 
       std::cerr << optarg <<"\n";
@@ -166,7 +170,7 @@ int main(int argc, char **argv) {
   unigram[0] = "<unk>";
   vt.insert(unigram);
 
-  TriggerLM tlm(vt, cache_order, min_order);
+  TriggerLM tlm(vt, cache_order, min_order, triggers);
 
   map<int, double> trvec;
 
@@ -308,3 +312,11 @@ int main(int argc, char **argv) {
 }
 
 
+// decode eval2000, dev2h, and generate 100-best lists
+
+// test 500best with new code
+// get WER for nbest-0 entry 
+
+// write down a-values
+
+// implement trigger features

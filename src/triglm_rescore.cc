@@ -25,21 +25,24 @@ int main(int argc, char **argv) {
   int cache_order = 1;
   int min_order=1;
   int niterations = 1000;
-
+  bool norescore = false;
   char *lm = NULL;
+  bool triggers=false;
 
   //Specifying the expected options
   //The two options l and b expect numbers as argument
   static struct option long_options[] = {
     {"order",      required_argument, 0,  'o' },
-    {"min-order",      required_argument, 0,  'O' },
-    {"lm",      required_argument, 0,  'l' },
+    {"min-order",  required_argument, 0,  'O' },
+    {"lm",         required_argument, 0,  'l' },
+    {"norescore",  no_argument,       0,  'n' },
+    {"triggers",   no_argument,       0,  't' },
     {0,           0,                  0,  0   }
   };
   
   int long_index =0;
   int opt = 0;
-  while ((opt = getopt_long(argc, argv,"o:l:O:", 
+  while ((opt = getopt_long(argc, argv,"o:l:O:nt", 
 			    long_options, &long_index )) != -1) {
     
 
@@ -49,6 +52,10 @@ int main(int argc, char **argv) {
     case 'O' : min_order = atoi(optarg);
       break;
     case 'l' : lm = optarg;
+      break;
+    case 'n': norescore=true;
+      break;
+    case 't': triggers=true;
       break;
     default: 
       std::cerr << optarg <<"\n";
@@ -82,7 +89,7 @@ int main(int argc, char **argv) {
   vt.insert(unigram);
 
 
-  TriggerLM tlm(vt, cache_order, min_order);
+  TriggerLM tlm(vt, cache_order, min_order, triggers);
 
 
   // do I read the n-best file in once or at each iteration...
@@ -128,7 +135,9 @@ int main(int argc, char **argv) {
       history_vec.clear();
 
     n = tlm.rescore(uvecs, scores);
-    //printf("# selected utterance %d %f\n", n, scores[n]);
+    if (norescore)
+      n=0;
+    fprintf(stderr, "# %d selected utterance %d %f\n", (norescore)?1:0,n, scores[n]);
     key = tlm.get_key();
     st = 0.0; 
     utt = tlm.get_utt(n);
