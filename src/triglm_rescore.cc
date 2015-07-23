@@ -27,7 +27,7 @@ int main(int argc, char **argv) {
   int niterations = 1000;
   bool norescore = false;
   char *lm = NULL;
-  bool triggers=false;
+  int maxtrig=0;
 
   //Specifying the expected options
   //The two options l and b expect numbers as argument
@@ -36,13 +36,13 @@ int main(int argc, char **argv) {
     {"min-order",  required_argument, 0,  'O' },
     {"lm",         required_argument, 0,  'l' },
     {"norescore",  no_argument,       0,  'n' },
-    {"triggers",   no_argument,       0,  't' },
+    {"max-trigger",required_argument, 0,  't' },
     {0,           0,                  0,  0   }
   };
   
   int long_index =0;
   int opt = 0;
-  while ((opt = getopt_long(argc, argv,"o:l:O:nt", 
+  while ((opt = getopt_long(argc, argv,"o:l:O:nt:", 
 			    long_options, &long_index )) != -1) {
     
 
@@ -55,7 +55,7 @@ int main(int argc, char **argv) {
       break;
     case 'n': norescore=true;
       break;
-    case 't': triggers=true;
+    case 't': maxtrig=atoi(optarg);
       break;
     default: 
       std::cerr << optarg <<"\n";
@@ -89,7 +89,7 @@ int main(int argc, char **argv) {
   vt.insert(unigram);
 
 
-  TriggerLM tlm(vt, cache_order, min_order, triggers);
+  TriggerLM tlm(vt, cache_order, min_order, maxtrig);
 
 
   // do I read the n-best file in once or at each iteration...
@@ -148,8 +148,9 @@ int main(int argc, char **argv) {
       st = end;
              
     }
-    
-    add_vector(history_vec, uvecs[n], vt.get_ngram_count());
+
+    if (maxtrig > 0)
+      add_vector(history_vec, uvecs[n], vt.get_ngram_count());
 
   }
   

@@ -43,6 +43,13 @@ int VocabTrie::insert(std::vector<const char*> &words) {
       unigram[node->id]=words[0];
     }
   }
+
+  if (words.size() > ngc.size())
+    ngc.resize(words.size(), 0);
+
+  if (node->id >= ngc[words.size()-1])
+    ngc[words.size()-1]=node->id+1;
+
   return node->id;
 }
 
@@ -297,4 +304,13 @@ string &VocabTrie::get_word(int wid) {
     return unk;
   else
     return it->second;
+}
+
+int VocabTrie::get_ngram_count(int order) {
+  if (order == 0)
+    return 0;
+  if (order > ngc.size())
+    return ngc[ngc.size()-1];
+  
+  return ngc[order];
 }

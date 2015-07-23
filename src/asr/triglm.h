@@ -60,8 +60,10 @@ namespace catlm {
 
     int lc;
 
+    int trigger_count;
+
   public:
-    TriggerLM(VocabTrie &vt, int _order, int _min_order=1, bool triggers=false);
+    TriggerLM(VocabTrie &vt, int _order, int _min_order=1, int trig_ngram=0);
     ~TriggerLM();
 
     void reset_counters();

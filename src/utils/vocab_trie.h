@@ -62,6 +62,8 @@ namespace catlm {
     int get_ngram_count() {
       return maxid+1;
     }
+    int get_ngram_count(int order);
+
     
   private:
     int maxid;
@@ -72,6 +74,8 @@ namespace catlm {
     std::map<int, string> unigram;
     
     string unk;
+
+    std::vector<int> ngc;
   };
 
 }

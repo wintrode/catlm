@@ -11,12 +11,13 @@ using namespace std;
 
 #define CHUNK 32000
 
-TriggerLM::TriggerLM(VocabTrie &trie, int _order, int _min_order, bool triggers) : 
-  vt(trie), order(_order), use_triggers(triggers), 
-  p(((triggers)?2:1) * trie.get_ngram_count()+1 ), min_order(_min_order) {
+TriggerLM::TriggerLM(VocabTrie &trie, int _order, int _min_order, int maxtrig) : 
+  vt(trie), order(_order), 
+  p(trie.get_ngram_count()+trie.get_ngram_count(maxtrig)+1 ), min_order(_min_order) {
   p.setFixedA0(true);
   saveUtts=false;
   ngram_count = trie.get_ngram_count();
+  trigger_count = trie.get_ngram_count(maxtrig);
 }
 
 TriggerLM::~TriggerLM() {
@@ -258,7 +259,7 @@ int TriggerLM::read_nbest_feats(FILE *infile, gzFile infd,
       }
     }
 
-    if (use_triggers) {
+    if (trigger_count > 0) {
       map<int,double>::iterator it;
       vector<int> adds;
       for (it=vec.begin(); it != vec.end(); it++) {
@@ -267,7 +268,7 @@ int TriggerLM::read_nbest_feats(FILE *infile, gzFile infd,
       }
 
       for (i=0; i < adds.size(); i++) {
-        if (adds[i] <= maxb)
+        if (adds[i] < trigger_count)
           vec[adds[i]+ngram_count+1]=1;
       }
     }
