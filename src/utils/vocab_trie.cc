@@ -25,6 +25,7 @@ VocabNode::~VocabNode() {
 
 VocabTrie::VocabTrie() : unk("<unk>") {
   root = new VocabNode(-1, (VocabNode*)NULL);
+  nodeMap[-1]=root;
   maxid = -1;
 }
 
@@ -62,11 +63,32 @@ VocabNode *VocabTrie::insert(VocabNode *here, std::vector<const char*> &words, i
     return it->second;
   
   VocabNode *node = new VocabNode(++maxid, here);
+  nodeMap[maxid]=node;
   string w(words[idx]);
   here->children[w]=node;
+  node->wd = &(here->children.find(w)->first);
   return node;
 }
 
+
+int VocabTrie::get_ngram(int ngid, std::vector<std::string> &out, std::vector<int> &idout) {
+  out.clear();
+  idout.clear();
+  std::map<int,VocabNode*>::iterator it;
+  it = nodeMap.find(ngid);
+  if (it == nodeMap.end())
+    return 0;
+
+  VocabNode *node = it->second;
+  while (node->parent != NULL) {
+    out.insert(out.begin(), *node->wd);
+    idout.insert(idout.begin(), node->id);
+    node = node->parent;
+  }
+
+  return out.size();
+
+}
 
 int VocabTrie::get_id(std::vector<const char*> &words) {
   VocabNode *node = root;

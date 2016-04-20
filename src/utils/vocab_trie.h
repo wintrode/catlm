@@ -33,6 +33,7 @@ namespace catlm {
   public:
     int id;
     VocabNode *parent;
+    const string *wd;
     std::map<string, VocabNode*> children;
     
     VocabNode(int vid, VocabNode *vparent);
@@ -64,6 +65,7 @@ namespace catlm {
     }
     int get_ngram_count(int order);
 
+    int get_ngram(int ngid, std::vector<std::string> &out, std::vector<int> &idout);
     
   private:
     int maxid;
@@ -72,6 +74,8 @@ namespace catlm {
     VocabNode *insert(VocabNode *here, std::vector<const char*> &words, int idx);
       
     std::map<int, string> unigram;
+
+    std::map<int, VocabNode*> nodeMap;
     
     string unk;
 

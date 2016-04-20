@@ -32,6 +32,15 @@
 
 namespace catlm {
 
+  typedef struct _latarc {
+    int start;
+    int end;
+    int wid;
+    int len;
+    double cost;
+  } latarc;
+
+
   class NbestUtt {
   public:
     std::vector<int> wids;
@@ -54,6 +63,8 @@ namespace catlm {
 
     bool saveUtts;
 
+    bool trigOnly;
+
     int ngram_count;
     int num_utts;
     std::vector<NbestUtt > utts;
@@ -62,11 +73,41 @@ namespace catlm {
 
     int trigger_count;
 
+    double lambda;
+
+    int vsize;
+
   public:
-    TriggerLM(VocabTrie &vt, int _order, int _min_order=1, int trig_ngram=0);
+    TriggerLM(VocabTrie &vt, int _order, int _min_order=1, int trig_ngram=0, bool fullng=false);
     ~TriggerLM();
 
+    int get_ngram_count() { return ngram_count; }
+
+    int get_ngram(int ngid, std::vector<std::string> & out, std::vector<int> &idout) { 
+      vt.get_ngram(ngid, out, idout);
+      return out.size();
+    }
+
+    int get_ngram_id(std::vector<std::string> &words, int pos, int len) {
+      return vt.get_id(words, pos, len);
+    }
+
+    //int get_ngram_id(std::list<int> &words, int pos, int len) {
+    //  return vt.get_id(words, pos, len);
+    //}
+
     void reset_counters();
+
+    int get_pcorrect() {
+      return p.ccorrect;
+    }
+    int get_ptotal() {
+      return p.tclass;
+    }
+
+    double get_alpha(int fid) {
+      return p.get_alpha(fid);
+    }
 
     int read_nbest_feats(FILE *infile, gzFile infd, 
                        std::vector<std::map<int, double> > &uvecs, 
@@ -74,13 +115,30 @@ namespace catlm {
                          std::map<int, double> &hist,
 			 std::vector<std::vector<int> > *nbestlist);
 
+    int read_lattice_feats(FILE *infile, gzFile infd, 
+                           std::vector<std::map<int, double> > &uvecs, 
+                           std::vector<latarc> &arcs, 
+                           std::map<int, double> &hist,
+                           std::map<int, std::string> *vmap) ;
+
     string &get_key() { return current_key; }
     int train_example(std::map<int, double> &truth, 
                        std::vector<std::map<int, double> > &fvecs,
                        std::vector<double> &scores);
+
+    int train_example_soft(std::vector<std::map<int, double> > &fvecs,
+                           std::vector<double> errs, 
+                           std::vector<double> &scores);
+
+    int train_example_lattice(std::vector<std::map<int, double> > &fvecs,
+                              std::vector<double> errs); 
+
     
     int rescore(std::vector<std::map<int, double> > &fvecs,
                 std::vector<double> &scores);
+
+
+    double rescore_lattice(std::map<int, double> &fvec);
 
 
     void save_utts() { saveUtts=true;}
@@ -95,12 +153,18 @@ namespace catlm {
       p.setAlpha0(alpha0);
     }
 
+    void setTrigOnly(bool b) {
+      trigOnly=b;
+    }
+
   };
 
 
   void print_vector(FILE*f, std::map<int, double> &vec); 
   void add_vector(std::map<int, double> &dest, std::map<int, double> &src,
                   int maxid); 
+  void add_vector(std::map<int, double> &dest, std::map<int, double> &src,
+                  double scalar);
 }
 
 #endif

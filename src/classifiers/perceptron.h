@@ -43,9 +43,13 @@ namespace catlm {
     int fmax;
 
     bool fixedA0;
+    double epsilon; // learning rate
 
   public:
-    Perceptron(int dim);
+    int ccorrect;
+    int tclass;
+
+    Perceptron(int dim, double epsilon=0.1);
     ~Perceptron();
 
     double get_alpha(int i) {
@@ -55,15 +59,11 @@ namespace catlm {
         return 0.0;
     }
 
-    double score_example(fvec &hyp) {
-      double score = 0.0;
-      fiterator it;
-      for (it = hyp.begin(); it != hyp.end(); it++) {
-        if (it->first >= 0 && it->first <= fmax)
-          score += it->second * alpha[it->first];
-      }
-      return score;
-    }
+    int get_fmax() { return fmax;}
+
+    double score_example(fvec &hyp, fvec &dif);
+
+    double score_example(fvec &hyp);
     
     double l1Diff(fvec &hyp, fvec &truth) {
       double score = 0.0;
@@ -85,7 +85,18 @@ namespace catlm {
       return score;
     }
 
-    void update_param(fvec &truth, fvec &hyp);
+    
+
+    void reset_status() {
+      ccorrect = 0;
+      tclass = 0;
+    }
+
+    void update_param(fvec &truth, fvec &hyp, int minid=0);
+
+    void update_param(double truth, fvec &hyp, int minid=0);
+
+    void update_param(fvec &delta, int minid=0);
 
     bool read(FILE *fp);
     void write(FILE *fp);

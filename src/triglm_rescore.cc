@@ -78,7 +78,7 @@ int main(int argc, char **argv) {
   }
 
   VocabTrie vt;
-  int ngram_count = vt.load(lm);  
+
 
   vector<const char*> unigram;
   unigram.resize(1, NULL);
@@ -90,6 +90,7 @@ int main(int argc, char **argv) {
 
 
   TriggerLM tlm(vt, cache_order, min_order, maxtrig);
+  int ngram_count = vt.load(lm);  
 
 
   // do I read the n-best file in once or at each iteration...
