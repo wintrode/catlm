@@ -1,4 +1,4 @@
-bin_PROGRAMS = catlm_train catlm_infer triglm_train triglm_rescore readlm triglm_train_lattice triglm_rescore_lattice lattice_test
+bin_PROGRAMS = catlm_train catlm_infer triglm_train triglm_rescore readlm logreg
 #triglm_lrescore
 
 #AM_CXXFLAGS = $(CATLM_CFLAGS)
@@ -31,17 +31,14 @@ catlm_infer_SOURCES = infer_main.cc corpus/corpus.cc utils/utils.cc topics/topic
 catlm_train_LDADD = $(CATLM_LIBS)
 catlm_infer_LDADD = $(CATLM_LIBS)
 
+logreg_SOURCES = classifiers/logreg.cc utils/utils.cc 
+
 triglm_train_SOURCES = triglm_train.cc utils/vocab_trie.cc classifiers/perceptron.cc utils/zlibutil.cc utils/utils.cc asr/triglm.cc 
 triglm_train_LDFLAGS = -lz
-
-triglm_train_lattice_SOURCES = triglm_train_lattice.cc utils/vocab_trie.cc classifiers/perceptron.cc utils/zlibutil.cc utils/utils.cc asr/triglm.cc 
-triglm_train_lattice_LDFLAGS = -lz
 
 triglm_rescore_SOURCES = triglm_rescore.cc utils/vocab_trie.cc classifiers/perceptron.cc utils/zlibutil.cc utils/utils.cc asr/triglm.cc 
 triglm_rescore_LDFLAGS = -lz
 
-triglm_rescore_lattice_SOURCES = triglm_rescore_lattice.cc utils/vocab_trie.cc classifiers/perceptron.cc utils/zlibutil.cc utils/utils.cc asr/triglm.cc 
-triglm_rescore_lattice_LDFLAGS = -lz
 
 readlm_SOURCES = readlm.cc utils/vocab_trie.cc utils/zlibutil.cc
 readlm_LDFLAGS = -lz
@@ -55,9 +52,9 @@ ADDLIBS = ${KALDI_ROOT}/src/lat/kaldi-lat.a \
 		${KALDI_ROOT}/src/base/kaldi-base.a
 
 #lattice_test_LINK=$(ADDLIBS)
-lattice_test_LDADD=$(ADDLIBS)
-lattice_test_SOURCES = lattice_test.cc utils/vocab_trie.cc classifiers/perceptron.cc utils/zlibutil.cc utils/utils.cc asr/triglm.cc 
-lattice_test_LDFLAGS = $(OPENFSTLIBS) $(ATLASLIBS) -lm -lpthread -ldl -lz
+#lattice_test_LDADD=$(ADDLIBS)
+#lattice_test_SOURCES = lattice_test.cc utils/vocab_trie.cc classifiers/perceptron.cc utils/zlibutil.cc utils/utils.cc asr/triglm.cc 
+#lattice_test_LDFLAGS = $(OPENFSTLIBS) $(ATLASLIBS) -lm -lpthread -ldl -lz
 
 #triglm_lrescore_LDADD=$(ADDLIBS)
 #triglm_lrescore_SOURCES = triglm_lrescore.cc utils/vocab_trie.cc classifiers/perceptron.cc utils/zlibutil.cc utils/utils.cc asr/triglm.cc 
